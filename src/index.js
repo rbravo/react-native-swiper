@@ -122,7 +122,8 @@ export default class extends Component {
     dotStyle: PropTypes.object,
     activeDotStyle: PropTypes.object,
     dotColor: PropTypes.string,
-    activeDotColor: PropTypes.string
+    activeDotColor: PropTypes.string,
+    onSlideChange: PropTypes.func,
   }
 
   /**
@@ -369,12 +370,15 @@ export default class extends Component {
         this.setState(newState, () => {
           this.setState({ offset: offset }, cb)
         })
+        typeof this.props.onSlideChange === 'function' && this.props.onSlideChange(newState.index)
       } else {
         newState.offset = offset
         this.setState(newState, cb)
+        typeof this.props.onSlideChange === 'function' && this.props.onSlideChange(newState.index)
       }
     } else {
       this.setState(newState, cb)
+      typeof this.props.onSlideChange === 'function' && this.props.onSlideChange(newState.index)
     }
   }
 
