@@ -331,6 +331,8 @@ export default class extends Component {
     const step = dir === 'x' ? state.width : state.height
     let loopJump = false
 
+    typeof this.props.onSlideChange === 'function' && !diff && this.props.onSlideChange(index)
+    
     // Do nothing if offset no change.
     if (!diff) return
 
