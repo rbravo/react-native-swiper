@@ -326,20 +326,21 @@ export default class extends Component {
    */
   updateIndex = (offset, dir, cb) => {
     const state = this.state
-    let index = state.index
+    let index = state.index;
     const diff = offset[dir] - this.internals.offset[dir]
     const step = dir === 'x' ? state.width : state.height
     let loopJump = false
-
-    typeof this.props.onSlideChange === 'function' && !diff && this.props.onSlideChange(index)
     
-    // Do nothing if offset no change.
-    if (!diff) return
-
     // Note: if touch very very quickly and continuous,
     // the variation of `index` more than 1.
     // parseInt() ensures it's always an integer
     index = parseInt(index + Math.round(diff / step))
+
+    // Do nothing if offset no change.
+    if (!diff) {
+      typeof this.props.onSlideChange === 'function' && this.props.onSlideChange(parseInt(index));
+      return;
+    }
 
     if (this.props.loop) {
       if (index <= -1) {
@@ -381,6 +382,44 @@ export default class extends Component {
     } else {
       this.setState(newState, cb)
       typeof this.props.onSlideChange === 'function' && this.props.onSlideChange(newState.index)
+    }
+  }
+
+  /**
+   * Scroll to index
+   * @param  {number} index index
+   * @param  {bool} animated
+   */
+
+  scrollTo = (index, animated = true) => {
+    if (this.internals.isScrolling || this.state.total < 2) return
+    const state = this.state
+    let x = 0
+    let y = 0
+    if (state.dir === 'x') x = index * state.width
+    if (state.dir === 'y') y = index * state.height
+
+    if (Platform.OS === 'android') {
+      this.refs.scrollView && this.refs.scrollView[animated ? 'setPage' : 'setPageWithoutAnimation'](index)
+    } else {
+      this.refs.scrollView && this.refs.scrollView.scrollTo({ x, y, animated })
+    }
+
+    // update scroll state
+    this.internals.isScrolling = true
+    this.setState({
+      autoplayEnd: false
+    })
+
+    // trigger onScrollEnd manually in android
+    if (!animated || Platform.OS === 'android') {
+      setImmediate(() => {
+        this.onScrollEnd({
+          nativeEvent: {
+            position: index
+          }
+        })
+      })
     }
   }
 
